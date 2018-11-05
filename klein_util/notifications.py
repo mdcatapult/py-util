@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
+import json
 from klein_config import config
 import boto3
-import json
 
 
 def notify(msg, **kwargs):

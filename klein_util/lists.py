@@ -1,4 +1,5 @@
 def uniqify(seq, idfun=None):
+    # pylint: disable=function-redefined
    # order preserving
    if idfun is None:
        def idfun(x): return x
