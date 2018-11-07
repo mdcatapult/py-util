@@ -5,11 +5,11 @@ import boto3
 
 
 def notify(msg, **kwargs):
-    if "topic" in config["notifications"]:
+    if config.has("notifications.topic") and config.has("aws"):
         msg_string = json.dumps(msg)
-        client = boto3.client('sns', region_name=config["aws"]["region"])
+        client = boto3.client('sns', region_name=config.get("aws.region"))
         client.publish(
-            TopicArn=config["notifications"]["topic"],
+            TopicArn=config.get("notifications.topic"),
             Message=msg_string,
             Subject=kwargs["subject"] if "subject" in kwargs else "Consumer Notification",
         )
