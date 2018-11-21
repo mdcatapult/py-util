@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import re
 
+
 class Detect:
 
     mimetype = ""
@@ -13,22 +14,17 @@ class Detect:
     def __init__(self, mimetype):
         self.mimetype = mimetype
 
-
     def is_html(self):
         return self.html.match(self.mimetype)
 
-
     def is_rtf(self):
         return self.rtf.match(self.mimetype)
-    
 
     def is_calendar(self):
         return self.calendar.match(self.mimetype)
-    
 
     def is_text(self):
         return self.text.match(self.mimetype)
 
     def is_archive(self):
         return self.archive.match(self.mimetype)
-    

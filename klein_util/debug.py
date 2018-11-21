@@ -3,8 +3,8 @@ import logging
 import argparse
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--debug", help="enable debug", action="store_true" )
-parser.add_argument("--info", help="enable debug", action="store_true" )
+parser.add_argument("--debug", help="enable debug", action="store_true")
+parser.add_argument("--info", help="enable debug", action="store_true")
 args, unknown = parser.parse_known_args()
 
 LOG_FORMAT = ('%(levelname) -10s %(asctime)s %(name) -30s %(funcName) '
@@ -18,4 +18,3 @@ elif args.debug:
     level = logging.DEBUG
 
 logging.basicConfig(level=level, format=LOG_FORMAT)
-
