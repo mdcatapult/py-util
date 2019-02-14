@@ -17,7 +17,7 @@ before_script:
 lint:
   stage: test
   script:
-    - pylint klein_util/*
+    - pylint --rcfile=.pylintrc src
 
 test:
   stage: test
