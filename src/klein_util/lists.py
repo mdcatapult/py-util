@@ -14,27 +14,27 @@ def uniqify(seq, idfun=None):
     return result
 
 
-def add_thing_to_list(input_list, thing):
+def add_string(input_list, value):
     """
     Adds a value to a list; checks thing type, and handles cases of the thing being a list or string.
     Currently doesn't handle dict data types.
     :param input_list: the input list to which we're adding the thing
-    :param thing: the thing to be added
+    :param value: the value to be added
     :return list
     """
     if not isinstance(input_list, list):
         raise TypeError("Target list is is not a list: type detected = %s" % type(input_list))
 
-    if isinstance(thing, int):
-        thing = str(thing)
+    if isinstance(value, int):
+        value = str(value)
 
-    if isinstance(thing, str):
-        thing = [thing]
+    if isinstance(value, str):
+        value = [value]
 
-    if isinstance(thing, dict):
-        thing = list(thing.keys())
+    if isinstance(value, dict):
+        value = list(value.keys())
 
-    if not isinstance(thing, list):
-            raise TypeError("Item to be added to the target list is of unhandled type %s" % type(thing))
+    if not isinstance(value, list):
+            raise TypeError("Item to be added to the target list is of unhandled type %s" % type(value))
 
-    return uniqify(input_list + thing)
+    return uniqify(input_list + value)

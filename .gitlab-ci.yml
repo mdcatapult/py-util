@@ -17,8 +17,12 @@ before_script:
 lint:
   stage: test
   script:
-    - pip install pylint
     - pylint klein_util/*
+
+test:
+  stage: test
+  script:
+    - python -m pytest
 
 publish-unstable:
   stage: publish
