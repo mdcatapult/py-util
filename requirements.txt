@@ -1,2 +1,4 @@
 klein_config<=1.01
 boto3
+pytest
+pytest-cov
