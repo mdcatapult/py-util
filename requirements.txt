@@ -1,4 +1,5 @@
 klein_config<=1.01
 boto3
+pylint
 pytest
 pytest-cov
