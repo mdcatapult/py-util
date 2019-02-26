@@ -12,7 +12,7 @@ stages:
   - publish
 
 before_script:
-  - pip install -r requirements.txt --trusted-host=13.0.1.67 --extra-index-url=http://13.0.1.67/mdc/stable 
+  - pip install -r requirements.txt --trusted-host=nexus.mdcatapult.io --extra-index-url=https://nexus.mdcatapult.io/repository/pypi-all/
 
 lint:
   stage: test
@@ -24,26 +24,10 @@ test:
   script:
     - python -m pytest
 
-publish-unstable:
-  stage: publish
-  before_script:
-  - pip install -r requirements.txt --trusted-host=13.0.1.67 --extra-index-url=http://13.0.1.67/mdc/unstable 
-  script:
-    - pip install devpi-client
-    - devpi use http://13.0.1.67
-    - devpi login "gitlab-ci-token" --password "$CI_BUILD_TOKEN"
-    - devpi use "mdc/unstable"
-    - python setup.py sdist bdist_wheel
-    - devpi upload --formats sdist,bdist_wheel
-
 publish-stable:
   stage: publish
   script:
-    - pip install devpi-client
-    - devpi use http://13.0.1.67
-    - devpi login "gitlab-ci-token" --password "$CI_BUILD_TOKEN"
-    - devpi use "mdc/stable"
     - python setup.py sdist bdist_wheel
-    - devpi upload --formats sdist,bdist_wheel
+    - twine upload -u $NEXUS_USERNAME -p $NEXUS_PASSWORD--repository-url https://nexus.mdcatapult.io/repository/pypi-internal/ dist/*
   only:
     - master

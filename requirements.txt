@@ -3,3 +3,4 @@ boto3
 pylint
 pytest
 pytest-cov
+twine
