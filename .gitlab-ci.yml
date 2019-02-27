@@ -1,7 +1,6 @@
 image: python:latest
 variables:
   PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache"
-  NEXUS_INDEX: https://$NEXUS_USERNAME:$NEXUS_PASSWORD@nexus.mdcatapult.io/repository/pypi-all/
 
 cache:
   paths:
@@ -13,7 +12,10 @@ stages:
   - publish
 
 before_script:
-  - pip install -r requirements.txt --trusted-host=nexus.mdcatapult.io --index=$NEXUS_INDEX --index-url=$NEXUS_INDEX
+  - >
+    pip install -r requirements.txt --trusted-host=nexus.mdcatapult.io 
+    --index=https://$NEXUS_USERNAME:$NEXUS_PASSWORD@nexus.mdcatapult.io/repository/pypi-all/ 
+    --index-url=https://$NEXUS_USERNAME:$NEXUS_PASSWORD@nexus.mdcatapult.io/repository/pypi-all/
 
 lint:
   stage: test
