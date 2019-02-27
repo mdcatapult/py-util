@@ -14,8 +14,8 @@ stages:
 before_script:
   - >
     pip install -r requirements.txt --trusted-host=nexus.mdcatapult.io 
-    --index=https://nexus.mdcatapult.io/repository/pypi-all/ 
-    --index-url=https://nexus.mdcatapult.io/repository/pypi-all/
+    --index=https://$NEXUS_USERNAME:$NEXUS_PASSWORD@nexus.mdcatapult.io/repository/pypi-all/ 
+    --index-url=https://$NEXUS_USERNAME:$NEXUS_PASSWORD@nexus.mdcatapult.io/repository/pypi-all/
 
 lint:
   stage: test
@@ -31,14 +31,14 @@ publish-stable:
   stage: publish
   script:
     - python setup.py sdist bdist_wheel
-    - twine upload --repository-url https://nexus.mdcatapult.io/repository/pypi-stable/ dist/*
+    - twine upload -u $NEXUS_USERNAME -p $NEXUS_PASSWORD --repository-url https://nexus.mdcatapult.io/repository/pypi-stable/ dist/*
   only:
     - master
 
 publish-unstable:
   stage: publish
   script:
-    - python setup.py sdist bdist_wheel
-    - twine upload --repository-url https://nexus.mdcatapult.io/repository/pypi-unstable/ dist/*
+    - python setup.py egg_info -b$CI_JOB_ID sdist bdist_wheel
+    - twine upload -u $NEXUS_USERNAME -p $NEXUS_PASSWORD --repository-url https://nexus.mdcatapult.io/repository/pypi-unstable/ dist/*
   except:
     - master
