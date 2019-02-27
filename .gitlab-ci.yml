@@ -12,7 +12,7 @@ stages:
   - publish
 
 before_script:
-  - pip install -r requirements.txt --trusted-host=nexus.mdcatapult.io --extra-index-url=https://NEXUS_USERNAME:$NEXUS_PASSWORD@nexus.mdcatapult.io/repository/pypi-all/
+  - pip install -r requirements.txt --trusted-host=nexus.mdcatapult.io --extra-index-url=https://$NEXUS_USERNAME:$NEXUS_PASSWORD@nexus.mdcatapult.io/repository/pypi-all/
 
 lint:
   stage: test
