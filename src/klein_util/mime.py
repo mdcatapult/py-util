@@ -10,6 +10,7 @@ class Detect:
     calendar = re.compile("(text/(calendar))")
     text = re.compile("(text/.*)")
     archive = re.compile("application/(gzip|vnd.ms-cab-compressed|x-(7z-compressed|ace-compressed|alz-compressed|apple-diskimage|arj|astrotite-afa|b1|bzip2|cfs-compressed|compress|cpio|dar|dgc-compressed|gca-compressed|gtar|lzh|lzip|lzma|lzop|lzx|par2|rar-compressed|sbx|shar|snappy-framed|stuffit|stuffitx|tar|xz|zoo)|zip)")
+    tabular = re.compile("(text|application/(csv|vnd.ms-excel|vnd.openxmlformats-officedocument.spreadsheetml.sheet))")
 
     def __init__(self, mimetype):
         self.mimetype = mimetype
@@ -28,3 +29,6 @@ class Detect:
 
     def is_archive(self):
         return self.archive.match(self.mimetype)
+
+    def is_tabular(self)
+        return is_tabular.match(self.mimetype)
