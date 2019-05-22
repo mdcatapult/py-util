@@ -9,6 +9,8 @@ class Detect:
     rtf = re.compile("(text/(rtf))")
     calendar = re.compile("(text/(calendar))")
     text = re.compile("(text/.*)")
+    image = re.compile("(image/(.*))")
+    audio = re.compile("(audio/(.*))")
     archive = re.compile("application/(gzip|vnd.ms-cab-compressed|x-(7z-compressed|ace-compressed|alz-compressed|apple-diskimage|arj|astrotite-afa|b1|bzip2|cfs-compressed|compress|cpio|dar|dgc-compressed|gca-compressed|gtar|lzh|lzip|lzma|lzop|lzx|par2|rar-compressed|sbx|shar|snappy-framed|stuffit|stuffitx|tar|xz|zoo)|zip)")
     tabular = [
         "text/csv",
@@ -38,3 +40,12 @@ class Detect:
 
     def is_tabular(self):
         return (self.mimetype in self.tabular)
+
+    def is_image(self):
+        return self.image.match(self.mimetype)
+
+    def is_audio(self):
+        return self.image.match(self.mimetype)
+
+    def is_ner_friendly(self):
+        return (not self.is_image() and not self.is_archive() and not self.is_audio)
