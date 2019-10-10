@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import json
 
+
 def traverse_dict(data, parts):
     remaining = len(parts)
     key = parts.pop(0)
