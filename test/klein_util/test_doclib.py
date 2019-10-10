@@ -27,6 +27,17 @@ def test_parse_document_metadata_2():
 
 
 def test_parse_document_metadata_3():
+    metadata = [
+        {'key': 'a', 'value': 1, 'arbitrary_property': 'blah'},
+        {'key': 'a', 'value': 2},
+        {'value': 1},
+    ]
+    result = parse_doclib_metadata(metadata)
+    expected_result = {'a': 2}
+    assert result == expected_result
+
+
+def test_parse_document_metadata_4():
     result = parse_doclib_metadata([])
     expected_result = {}
     assert result == expected_result

@@ -8,7 +8,7 @@ def parse_doclib_metadata(metadata):
 
     Ignores any dicts in the list which do not provide both `key` and `value`.
     Any additional properties in a dict are also ignored.
-    Any repeated 'key' values
+    Any repeated keys will be updated with the last value provided.
 
     :param list metadata: list of dicts defining `key` and `value`
     :return: a dict created from all the keys and values in the metadata
