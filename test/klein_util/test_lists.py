@@ -1,5 +1,7 @@
 import pytest
+
 from src.klein_util.lists import add_string
+
 
 def test_add_string_with_string():
     result_list = add_string([], "foo")
