@@ -92,6 +92,7 @@ def get_doclib_derivative_paths(path,doclib_derivatives_prefix,derivative_file_n
     doclib_derivatives_prefix = config.get("doclib.derivatives_prefix")
     doclib_local_target = config.get("doclib.local_target")
     doclib_local_temp = config.get("doclib.local_temp")
+    doclib_remote_target = config.get("doclib.remote_target")
 
     # doclib_root = "/doclib_dev/"
     # doclib_local_target = "local"
