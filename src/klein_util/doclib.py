@@ -1,3 +1,6 @@
+import os
+#from klein_config import config
+
 # -*- coding: utf-8 -*-
 def parse_doclib_metadata(metadata):
     """
@@ -81,3 +84,47 @@ def get_metadata_index_by_value(metadata, value):
     :return:
     """
     return _get_metadata_index_helper(metadata, 'value', value)
+
+def get_doclib_derivative_paths(path,doclib_derivatives_prefix,derivative_file_name, is_relative=True):
+
+    # doclib_root = config.get("doclib.root")
+    # doclib_derivatives_prefix = config.get("doclib.derivatives_prefix")
+    # doclib_local_target = config.get("doclib.local_target")
+    # doclib_local_temp = config.get("doclib.local_temp")
+
+    doclib_root = "/doclib_dev/"
+    doclib_local_target = "local"
+    doclib_local_temp = "ingress"
+    doclib_remote_target = "remote"
+
+    paths = {}
+    if is_relative:
+        paths["absolute_path"] = os.path.join(doclib_root, path)
+        paths["relative_path"] = path
+    else:
+        paths["absolute_path"] = path
+        paths["relative_path"] = path.replace(doclib_root, "")
+
+    path_array = paths["relative_path"].split("/")
+    path_array[-1] = doclib_derivatives_prefix + "-" + path_array[-1]
+    path_array.append(derivative_file_name)
+
+    if path_array[1] != "derivatives":
+        path_array.insert(1, "derivatives")
+
+    if path_array[0] == doclib_remote_target:
+        path_array.insert(2, doclib_remote_target)
+
+    path_array[0] = doclib_local_temp
+
+    paths["relative_temp_directory"] = "/".join(path_array[:-1])
+    paths["absolute_temp_directory"] = os.path.join(doclib_root, paths["relative_temp_directory"])
+    paths["relative_temp_path"] = "/".join(path_array)
+
+    path_array[0] = doclib_local_target
+
+    paths["relative_target_directory"] = "/".join(path_array[:-1])
+    paths["relative_target_path"] = "/".join(path_array)
+
+    return paths
+
