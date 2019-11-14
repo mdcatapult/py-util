@@ -1,5 +1,5 @@
 import os
-#from klein_config import config
+from klein_config import config
 
 # -*- coding: utf-8 -*-
 def parse_doclib_metadata(metadata):
@@ -85,17 +85,18 @@ def get_metadata_index_by_value(metadata, value):
     """
     return _get_metadata_index_helper(metadata, 'value', value)
 
+
 def get_doclib_derivative_paths(path,doclib_derivatives_prefix,derivative_file_name, is_relative=True):
 
-    # doclib_root = config.get("doclib.root")
-    # doclib_derivatives_prefix = config.get("doclib.derivatives_prefix")
-    # doclib_local_target = config.get("doclib.local_target")
-    # doclib_local_temp = config.get("doclib.local_temp")
+    doclib_root = config.get("doclib.root")
+    doclib_derivatives_prefix = config.get("doclib.derivatives_prefix")
+    doclib_local_target = config.get("doclib.local_target")
+    doclib_local_temp = config.get("doclib.local_temp")
 
-    doclib_root = "/doclib_dev/"
-    doclib_local_target = "local"
-    doclib_local_temp = "ingress"
-    doclib_remote_target = "remote"
+    # doclib_root = "/doclib_dev/"
+    # doclib_local_target = "local"
+    # doclib_local_temp = "ingress"
+    # doclib_remote_target = "remote"
 
     paths = {}
     if is_relative:
