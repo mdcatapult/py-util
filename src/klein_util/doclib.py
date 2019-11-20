@@ -122,6 +122,7 @@ def get_doclib_derivative_paths(path,doclib_derivatives_prefix,derivative_file_n
     paths["relative_temp_directory"] = "/".join(path_array[:-1])
     paths["absolute_temp_directory"] = os.path.join(doclib_root, paths["relative_temp_directory"])
     paths["relative_temp_path"] = "/".join(path_array)
+    paths["absolute_temp_path"] = os.path.join(doclib_root, paths["relative_temp_path"])
 
     path_array[0] = doclib_local_target
 
