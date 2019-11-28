@@ -1,6 +1,7 @@
 klein_config<=1.01
 boto3
 bson
+mongomock
 pylint
 pytest
 pytest-cov
