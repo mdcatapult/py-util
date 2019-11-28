@@ -1,6 +1,9 @@
+from bson import ObjectId
+from mongomock import MongoClient
+
 from src.klein_util.doclib import (
     parse_doclib_metadata, convert_document_metadata, create_doclib_metadata, get_metadata_index_by_key,
-    get_metadata_index_by_value
+    get_metadata_index_by_value, get_document_with_ner
 )
 
 
@@ -116,3 +119,42 @@ def test_get_metadata_index_by_value_1():
     result = get_metadata_index_by_value(metadata, 3)
 
     assert result == 2
+
+
+# create a new mocked collection
+test_db = MongoClient()['doclib']
+test_doc_collection = test_db['documents']
+test_doc_id = ObjectId("123456781234567812345678")
+test_doc_collection.insert_one({
+    "_id": test_doc_id,
+
+})
+
+test_ner_data = {
+    "value": "aspirin",
+    "hash": "90ea1eeaf311dc6d503bf7cb8056f8bb",
+    "total": 1,
+    "document": test_doc_id,
+    "fragment": None,
+    "occurrences": [
+        {
+            "entityType" : "DictMol",
+            "entityGroup" : None,
+            "schema" : "leadmine",
+            "characterStart" : 0,
+            "characterEnd" : 6,
+            "fragment" : None,
+            "correctedValue" : None,
+            "type" : "Document"
+        }
+    ]
+}
+
+test_ner_collection = test_db['ner']
+test_ner_collection.insert_one(test_ner_data)
+
+
+def test_get_document_with_ner():
+    result = get_document_with_ner({"_id": test_doc_id}, test_doc_collection)
+    assert len(result['ner']) == 1
+    assert result['ner'][0] == test_ner_data
