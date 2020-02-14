@@ -1,9 +1,14 @@
+from datetime import datetime
+from unittest.mock import patch
+
+from test.klein_util.test_common import test_config
+
 from bson import ObjectId
 from mongomock import MongoClient
 
 from src.klein_util.doclib import (
     parse_doclib_metadata, convert_document_metadata, create_doclib_metadata, get_metadata_index_by_key,
-    get_metadata_index_by_value, get_document_with_ner
+    get_metadata_index_by_value, get_document_with_ner, set_doclib_flag
 )
 
 
@@ -125,9 +130,16 @@ def test_get_metadata_index_by_value_1():
 test_db = MongoClient()['doclib']
 test_doc_collection = test_db['documents']
 test_doc_id = ObjectId("123456781234567812345678")
-test_doc_collection.insert_one({
+test_doc = test_doc_collection.insert_one({
     "_id": test_doc_id,
-
+    "doclib": [
+        {
+            "key": "doclib_other_key",
+            "started": datetime.now(),
+            "ended": datetime.now(),
+            "errored": None
+        }
+    ]
 })
 
 test_ner_data = {
@@ -150,7 +162,7 @@ test_ner_data = {
     ]
 }
 
-test_ner_collection = test_db['ner']
+test_ner_collection = test_db['documents_ner']
 test_ner_collection.insert_one(test_ner_data)
 
 
@@ -158,3 +170,44 @@ def test_get_document_with_ner():
     result = get_document_with_ner({"_id": test_doc_id}, test_doc_collection)
     assert len(result['ner']) == 1
     assert result['ner'][0] == test_ner_data
+
+
+@patch('src.klein_util.doclib.config', new=test_config)
+def test_set_doclib_flag():
+    test_document = test_doc_collection.find_one({"_id": test_doc_id})
+    flags = test_document['doclib']
+
+    # initial flag from another  queue
+    assert len(flags) == 1
+
+    # add a new flag, which errors
+    initial_started = datetime.now()
+    initial_errored = datetime.now()
+    set_doclib_flag(test_doc_collection, test_doc_id, started=initial_started, errored=initial_errored)
+
+    # refresh the document
+    test_document = test_doc_collection.find_one({"_id": test_doc_id})
+    flags = test_document['doclib']
+    new_flag = list(filter(lambda x: x['key'] == 'doclib_test_queue', flags))[0]
+
+    assert len(flags) == 2
+    # TODO - timestamps are recorded in mongo at different level of precision so need to account for that here
+    # TODO (e.g. "2020-02-14 14:48:45.079866" becomes "2020-02-14 14:48:45.079000")
+    # assert new_flag['errored'] == initial_errored
+    assert new_flag['ended'] is None
+
+    # add a new flag which completes:
+    new_started = datetime.now()
+    new_ended = datetime.now()
+    set_doclib_flag(test_doc_collection, test_doc_id, started=new_started, ended=new_ended)
+
+    # refresh the document again
+    test_document = test_doc_collection.find_one({"_id": test_doc_id})
+    updated_flags = test_document['doclib']
+    new_updated_flags = list(filter(lambda x: x['key'] == 'doclib_test_queue', updated_flags))
+    new_updated_flag = new_updated_flags[0]
+
+    assert len(list(filter(lambda x: x['key'] == 'doclib_test_queue', new_updated_flags))) == 1
+    assert new_updated_flag['errored'] is None
+    # TODO - see above
+    # assert new_updated_flag['ended'] == new_ended

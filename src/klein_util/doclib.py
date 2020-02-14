@@ -1,4 +1,9 @@
 # -*- coding: utf-8 -*-
+from bson import ObjectId
+
+from klein_config import config
+
+
 def parse_doclib_metadata(metadata):
     """
     Return a new dict from a list of dicts defining `key`s and `value`s.
@@ -83,26 +88,21 @@ def get_metadata_index_by_value(metadata, value):
     return _get_metadata_index_helper(metadata, 'value', value)
 
 
-def get_document_with_ner(
+def _get_documents_with_ner(
         doc_query,
         doc_collection,
-        ner_collection_name="ner"
+        ner_collection_name="documents_ner"
 ):
     """
-    Return a matching document with added NER information.
+    Returns a pymongo CommandCursor of matching documents with added NER info.
 
-    Only returns a single document, so only suitable for use with queries that
-    are expected to return a single hit - e.g. "_id" or other unique field.
-
-    :param dict doc_query: a dict defining the document
+    :param dict doc_query: a dict defining the document query
     :param pymongo.collection.Collection doc_collection: the document mongo
     collection object
     :param str ner_collection_name: the ner mongo collection name (default:
-    "ner")
-    :return: the new document as dict
+    "documents_ner")
+    :return: the pymongo.command_cursor.CommandCursor object
     """
-    # from pdb import set_trace
-    # set_trace()
     return doc_collection.aggregate([
         {"$match": doc_query},
         {"$lookup": {
@@ -111,4 +111,65 @@ def get_document_with_ner(
             "foreignField": "document",
             "as": "ner"}
         }
-    ]).next()
+    ])
+
+
+def get_document_with_ner(
+        doc_query,
+        doc_collection,
+        ner_collection_name="documents_ner"
+):
+    """
+    Returns a matching document with added NER information.
+
+    Only returns a single document, so only suitable for use with queries that
+    are expected to return a single hit - e.g. "_id" or other unique field.
+
+    :param dict doc_query: a dict defining the document query
+    :param pymongo.collection.Collection doc_collection: the document mongo
+    collection object
+    :param str ner_collection_name: the ner mongo collection name (default:
+    "ner")
+    :return: the document + ner info as dict
+    """
+    return _get_documents_with_ner(
+        doc_query,
+        doc_collection,
+        ner_collection_name
+    ).next()
+
+
+# TODO - cant seem to mock klein_mongo.docs, so for now, the collection is a method parameter
+# TODO - to allow this to be tested
+def set_doclib_flag(collection, doc_id, started=None, ended=None, errored=None):
+    """
+    Creates or updates a doclib flag object for the consumer for a document.
+
+    @param pymongo.collection.Collection collection: the mongodb collection
+    @param str doc_id: the document id
+    @param datetime started: started timestamp
+    @param datetime ended: ended timestamp
+    @param datetime errored: ended timestamp
+    @return:
+    """
+    key = config.get("consumer.queue")
+
+    flag = {
+        "key": key,
+        "version": config.get("consumer.version"),
+        "started": started,
+        "ended": ended,
+        "errored": errored
+    }
+
+    # remove any existing flag with the consumer's key
+    collection.update_one(
+        {"_id": ObjectId(doc_id)},
+        {"$pull": {"doclib": {"key": key}}}
+    )
+
+    # then create a new one with the provided details
+    collection.update_one(
+        {"_id": ObjectId(doc_id)},
+        {"$push": {"doclib": flag}},
+    )
