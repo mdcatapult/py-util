@@ -88,6 +88,36 @@ def get_metadata_index_by_value(metadata, value):
     return _get_metadata_index_helper(metadata, 'value', value)
 
 
+# TODO - cant seem to mock klein_mongo.docs, so for now, the collection is a method parameter
+# TODO - to allow this to be tested
+def set_document_metadata(collection, doc_id, key, value, replace=True):
+    """
+    Creates or updates a metadata object for a document.
+
+    By default this will replace any existing metadata object(s) with the same
+    key. Use `replace=False` to add without removing existing ones.
+
+    @param pymongo.collection.Collection collection: the mongodb collection
+    @param str doc_id: the document id
+    @param str key: the metadata key
+    @param str value: the metadata value
+    @param bool replace: flag to replace existing metadata objects
+    @return:
+    """
+    if replace:
+        # remove any metadata object matching the key
+        collection.update_one(
+            {"_id": ObjectId(doc_id)},
+            {"$pull": {"metadata": {"key": key}}}
+        )
+
+    # then create a new one with the provided details
+    collection.update_one(
+        {"_id": ObjectId(doc_id)},
+        {"$push": {"metadata": {"key": key, "value": value}}},
+    )
+
+
 def _get_documents_with_ner(
         doc_query,
         doc_collection,
@@ -162,7 +192,7 @@ def set_doclib_flag(collection, doc_id, started=None, ended=None, errored=None):
         "errored": errored
     }
 
-    # remove any existing flag with the consumer's key
+    # remove any existing flag(s) with the consumer's key
     collection.update_one(
         {"_id": ObjectId(doc_id)},
         {"$pull": {"doclib": {"key": key}}}
