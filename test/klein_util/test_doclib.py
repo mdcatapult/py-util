@@ -8,7 +8,7 @@ from mongomock import MongoClient
 
 from src.klein_util.doclib import (
     parse_doclib_metadata, convert_document_metadata, create_doclib_metadata, get_metadata_index_by_key,
-    get_metadata_index_by_value, get_document_with_ner, set_doclib_flag
+    get_metadata_index_by_value, get_document_with_ner, set_doclib_flag, set_document_metadata
 )
 
 
@@ -139,6 +139,11 @@ test_doc = test_doc_collection.insert_one({
             "ended": datetime.now(),
             "errored": None
         }
+    ],
+    "metadata": [
+        {"key": "test1", "value": "test one"},
+        {"key": "test2", "value": "test two"},
+        {"key": "test2", "value": "test two"},
     ]
 })
 
@@ -150,14 +155,14 @@ test_ner_data = {
     "fragment": None,
     "occurrences": [
         {
-            "entityType" : "DictMol",
-            "entityGroup" : None,
-            "schema" : "leadmine",
-            "characterStart" : 0,
-            "characterEnd" : 6,
-            "fragment" : None,
-            "correctedValue" : None,
-            "type" : "Document"
+            "entityType": "DictMol",
+            "entityGroup": None,
+            "schema": "leadmine",
+            "characterStart": 0,
+            "characterEnd": 6,
+            "fragment": None,
+            "correctedValue": None,
+            "type": "Document"
         }
     ]
 }
@@ -211,3 +216,50 @@ def test_set_doclib_flag():
     assert new_updated_flag['errored'] is None
     # TODO - see above
     # assert new_updated_flag['ended'] == new_ended
+
+
+def _get_test_doc_metadata():
+    test_document = test_doc_collection.find_one({"_id": test_doc_id})
+    return test_document['metadata']
+
+
+@patch('src.klein_util.doclib.config', new=test_config)
+def test_set_document_metadata():
+    metadata = _get_test_doc_metadata()
+
+    # initial data
+    assert len(metadata) == 3
+    assert get_metadata_index_by_key(metadata, "test1") == 0
+
+    # add a new one:
+    set_document_metadata(test_doc_collection, test_doc_id, "test3", "test three")
+
+    metadata = _get_test_doc_metadata()
+    assert len(metadata) == 4
+    assert get_metadata_index_by_key(metadata, "test3") == 3
+
+    # replace single
+    set_document_metadata(test_doc_collection, test_doc_id, "test1", "test one modified")
+
+    metadata = _get_test_doc_metadata()
+    assert len(metadata) == 4
+    assert get_metadata_index_by_key(metadata, "test1") == 3
+
+    # replace multiple
+    set_document_metadata(test_doc_collection, test_doc_id, "test2", "test two modified")
+
+    metadata = _get_test_doc_metadata()
+    assert len(metadata) == 3
+    assert get_metadata_index_by_key(metadata, "test2") == 2
+
+    meta_dict = parse_doclib_metadata(metadata)
+
+    assert meta_dict["test1"] == "test one modified"
+    assert meta_dict["test2"] == "test two modified"
+    assert meta_dict["test3"] == "test three"
+
+    # add duplicate
+    set_document_metadata(test_doc_collection, test_doc_id, "test2", "test two modified dupe", replace=False)
+
+    metadata = _get_test_doc_metadata()
+    assert len(metadata) == 4

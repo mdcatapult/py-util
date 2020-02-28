@@ -9,5 +9,10 @@ test_config = EnvironmentAwareConfig(
             'queue': "doclib_test_queue",
             'version': 'consumer_version',
         },
+        'mongo': {
+            'host': 'test_host',
+            'username': 'test_user',
+            'password': 'test_password'
+        }
     }
 )
