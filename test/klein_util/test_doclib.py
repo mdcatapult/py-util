@@ -2,7 +2,7 @@ import pytest
 
 from src.klein_util.doclib import (
     parse_doclib_metadata, convert_document_metadata, create_doclib_metadata, get_metadata_index_by_key,
-    get_metadata_index_by_value, get_doclib_derivative_paths
+    get_metadata_index_by_value, get_doclib_derivative_path
 )
 
 
@@ -120,77 +120,40 @@ def test_get_metadata_index_by_value_1():
     assert result == 2
 
 
-# def test_get_paths_derivative_from_local_derivative():
-#     path = "local/derivatives/ebi/supplementary/unarchived-PMC123456.zip/information.xml"
-#
-#     paths = get_doclib_derivative_paths(path=path, doclib_derivatives_prefix="raw_text", derivative_file_name="raw.txt")
-#
-#     assert paths[
-#                "absolute_path"] == "/doclib_dev/local/derivatives/ebi/supplementary/unarchived-PMC123456.zip/information.xml"
-#
-#     assert paths["relative_path"] == path
-#
-#     assert paths["relative_temp_path"] == "ingress/derivatives/ebi/supplementary/unarchived-PMC123456.zip/raw_text-information.xml/raw.txt"
-#
-#     assert paths["relative_temp_directory"] == "ingress/derivatives/ebi/supplementary/unarchived-PMC123456.zip/raw_text-information.xml"
-#
-#     assert paths["absolute_temp_directory"] == "/doclib_dev/ingress/derivatives/ebi/supplementary/unarchived-PMC123456.zip/raw_text-information.xml"
-#
-#     assert paths["relative_target_path"] == "local/derivatives/ebi/supplementary/unarchived-PMC123456.zip/raw_text-information.xml/raw.txt"
-#
-#
-# def test_get_paths_derivative_from_local_non_derivative():
-#     path = "local/ebi/supplementary/compounds.xls"
-#
-#     paths = get_doclib_derivative_paths(path=path, doclib_derivatives_prefix="spreadsheet_conv", derivative_file_name="sheet1.tsv")
-#
-#     assert paths[
-#                "absolute_path"] == "/doclib_dev/local/ebi/supplementary/compounds.xls"
-#
-#     assert paths["relative_path"] == path
-#
-#     assert paths["relative_temp_path"] == "ingress/derivatives/ebi/supplementary/spreadsheet_conv-compounds.xls/sheet1.tsv"
-#
-#     assert paths["relative_temp_directory"] == "ingress/derivatives/ebi/supplementary/spreadsheet_conv-compounds.xls"
-#
-#     assert paths["absolute_temp_directory"] == "/doclib_dev/ingress/derivatives/ebi/supplementary/spreadsheet_conv-compounds.xls"
-#
-#     assert paths["relative_target_path"] == "local/derivatives/ebi/supplementary/spreadsheet_conv-compounds.xls/sheet1.tsv"
-#
-#
-# def test_get_paths_derivative_from_remote():
-#     path = "remote/http/phpboyscout.uk/assets/text.zip"
-#
-#     paths = get_doclib_derivative_paths(path=path, doclib_derivatives_prefix="unarchived", derivative_file_name="evidence.png")
-#
-#     assert paths[
-#                "absolute_path"] == "/doclib_dev/remote/http/phpboyscout.uk/assets/text.zip"
-#
-#     assert paths["relative_path"] == path
-#
-#     assert paths["relative_temp_path"] == "ingress/derivatives/remote/http/phpboyscout.uk/assets/unarchived-text.zip/evidence.png"
-#
-#     assert paths["relative_temp_directory"] == "ingress/derivatives/remote/http/phpboyscout.uk/assets/unarchived-text.zip"
-#
-#     assert paths["absolute_temp_directory"] == "/doclib_dev/ingress/derivatives/remote/http/phpboyscout.uk/assets/unarchived-text.zip"
-#
-#     assert paths["relative_target_path"] == "local/derivatives/remote/http/phpboyscout.uk/assets/unarchived-text.zip/evidence.png"
-#
-#
-# def test_get_paths_derivative_from_remote_absolute_path():
-#     path = "/doclib_dev/remote/http/phpboyscout.uk/assets/text.zip"
-#
-#     paths = get_doclib_derivative_paths(path=path, doclib_derivatives_prefix="unarchived", derivative_file_name="evidence.png", is_relative=False)
-#
-#     assert paths[
-#                "absolute_path"] == "/doclib_dev/remote/http/phpboyscout.uk/assets/text.zip"
-#
-#     assert paths["relative_path"] == "remote/http/phpboyscout.uk/assets/text.zip"
-#
-#     assert paths["relative_temp_path"] == "ingress/derivatives/remote/http/phpboyscout.uk/assets/unarchived-text.zip/evidence.png"
-#
-#     assert paths["relative_temp_directory"] == "ingress/derivatives/remote/http/phpboyscout.uk/assets/unarchived-text.zip"
-#
-#     assert paths["absolute_temp_directory"] == "/doclib_dev/ingress/derivatives/remote/http/phpboyscout.uk/assets/unarchived-text.zip"
-#
-#     assert paths["relative_target_path"] == "local/derivatives/remote/http/phpboyscout.uk/assets/unarchived-text.zip/evidence.png"
+def test_derivatives_path_remote():
+    doc = {"source": "/remote/https/bbc.co.uk/test.pdf"}
+
+    derivatives_prefix = "pdf_to_table"
+
+    derivative_filename = "table1.csv"
+
+    result = get_doclib_derivative_path(doc=doc, derivatives_prefix=derivatives_prefix,
+                                        derivative_file_name=derivative_filename)
+
+    assert result == "ingress/derivatives/remote/https/bbc.co.uk/pdf_to_table-test.pdf/table1.csv"
+
+
+def test_derivatives_path_local_derivatives():
+    doc = {"source": "local/derivatives/remote/https/bbc.co.uk/test.pdf"}
+
+    derivatives_prefix = "pdf_to_table"
+
+    derivative_filename = "table1.csv"
+
+    result = get_doclib_derivative_path(doc=doc, derivatives_prefix=derivatives_prefix,
+                                        derivative_file_name=derivative_filename)
+
+    assert result == "ingress/derivatives/remote/https/bbc.co.uk/pdf_to_table-test.pdf/table1.csv"
+
+
+def test_derivatives_path_local():
+    doc = {"source": "local/xenobiotica/test.pdf"}
+
+    derivatives_prefix = "pdf_to_table"
+
+    derivative_filename = "table1.csv"
+
+    result = get_doclib_derivative_path(doc=doc, derivatives_prefix=derivatives_prefix,
+                                        derivative_file_name=derivative_filename)
+
+    assert result == "ingress/derivatives/xenobiotica/pdf_to_table-test.pdf/table1.csv"

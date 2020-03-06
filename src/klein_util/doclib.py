@@ -1,5 +1,7 @@
 import os
+import pathlib
 from klein_config import config
+
 
 # -*- coding: utf-8 -*-
 def parse_doclib_metadata(metadata):
@@ -86,48 +88,25 @@ def get_metadata_index_by_value(metadata, value):
     return _get_metadata_index_helper(metadata, 'value', value)
 
 
-def get_doclib_derivative_paths(path,doclib_derivatives_prefix,derivative_file_name, is_relative=True):
+def get_doclib_derivative_path(doc, derivative_file_name, derivatives_prefix):
 
-    doclib_root = config.get("doclib.root")
-    doclib_derivatives_prefix = config.get("doclib.derivatives_prefix")
-    doclib_local_target = config.get("doclib.local_target")
-    doclib_local_temp = config.get("doclib.local_temp")
-    doclib_remote_target = config.get("doclib.remote_target")
+    p = pathlib.Path(doc["source"])
 
-    # doclib_root = "/doclib_dev/"
-    # doclib_local_target = "local"
-    # doclib_local_temp = "ingress"
-    # doclib_remote_target = "remote"
+    parts = list(p.parts)
 
-    paths = {}
-    if is_relative:
-        paths["absolute_path"] = os.path.join(doclib_root, path)
-        paths["relative_path"] = path
-    else:
-        paths["absolute_path"] = path
-        paths["relative_path"] = path.replace(doclib_root, "")
+    # todo get ingress from config config.get("doclib.local_temp") needs config aware unit test
+    parts[0] = "ingress"
 
-    path_array = paths["relative_path"].split("/")
-    path_array[-1] = doclib_derivatives_prefix + "-" + path_array[-1]
-    path_array.append(derivative_file_name)
+    if parts[1] != "derivatives":
+        parts.insert(1, "derivatives")
 
-    if path_array[1] != "derivatives":
-        path_array.insert(1, "derivatives")
+    # todo get derivatives_prefix from config config.get("consumer.derivatives.prefix") needs config aware unit test
+    parts[-1] = "{prefix}-{filename}".format(prefix=derivatives_prefix, filename=parts[-1])
 
-    if path_array[0] == doclib_remote_target:
-        path_array.insert(2, doclib_remote_target)
+    parts.append(derivative_file_name)
 
-    path_array[0] = doclib_local_temp
+    parts = tuple(parts)
 
-    paths["relative_temp_directory"] = "/".join(path_array[:-1])
-    paths["absolute_temp_directory"] = os.path.join(doclib_root, paths["relative_temp_directory"])
-    paths["relative_temp_path"] = "/".join(path_array)
-    paths["absolute_temp_path"] = os.path.join(doclib_root, paths["relative_temp_path"])
+    derivative = str(pathlib.Path(*parts))
 
-    path_array[0] = doclib_local_target
-
-    paths["relative_target_directory"] = "/".join(path_array[:-1])
-    paths["relative_target_path"] = "/".join(path_array)
-
-    return paths
-
+    return derivative
