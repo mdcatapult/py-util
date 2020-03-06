@@ -1,9 +1,10 @@
-import os
 import pathlib
+# -*- coding: utf-8 -*-
+from bson import ObjectId
+
 from klein_config import config
 
 
-# -*- coding: utf-8 -*-
 def parse_doclib_metadata(metadata):
     """
     Return a new dict from a list of dicts defining `key`s and `value`s.
@@ -110,3 +111,119 @@ def get_doclib_derivative_path(doc, derivative_file_name, derivatives_prefix):
     derivative = str(pathlib.Path(*parts))
 
     return derivative
+
+# TODO - cant seem to mock klein_mongo.docs, so for now, the collection is a method parameter
+# TODO - to allow this to be tested
+def set_document_metadata(collection, doc_id, key, value, replace=True):
+    """
+    Creates or updates a metadata object for a document.
+
+    By default this will replace any existing metadata object(s) with the same
+    key. Use `replace=False` to add without removing existing ones.
+
+    @param pymongo.collection.Collection collection: the mongodb collection
+    @param str doc_id: the document id
+    @param str key: the metadata key
+    @param str value: the metadata value
+    @param bool replace: flag to replace existing metadata objects
+    @return:
+    """
+    if replace:
+        # remove any metadata object matching the key
+        collection.update_one(
+            {"_id": ObjectId(doc_id)},
+            {"$pull": {"metadata": {"key": key}}}
+        )
+
+    # then create a new one with the provided details
+    collection.update_one(
+        {"_id": ObjectId(doc_id)},
+        {"$push": {"metadata": {"key": key, "value": value}}},
+    )
+
+
+def _get_documents_with_ner(
+        doc_query,
+        doc_collection,
+        ner_collection_name="documents_ner"
+):
+    """
+    Returns a pymongo CommandCursor of matching documents with added NER info.
+
+    :param dict doc_query: a dict defining the document query
+    :param pymongo.collection.Collection doc_collection: the document mongo
+    collection object
+    :param str ner_collection_name: the ner mongo collection name (default:
+    "documents_ner")
+    :return: the pymongo.command_cursor.CommandCursor object
+    """
+    return doc_collection.aggregate([
+        {"$match": doc_query},
+        {"$lookup": {
+            "from": ner_collection_name,
+            "localField": "_id",
+            "foreignField": "document",
+            "as": "ner"}
+        }
+    ])
+
+
+def get_document_with_ner(
+        doc_query,
+        doc_collection,
+        ner_collection_name="documents_ner"
+):
+    """
+    Returns a matching document with added NER information.
+
+    Only returns a single document, so only suitable for use with queries that
+    are expected to return a single hit - e.g. "_id" or other unique field.
+
+    :param dict doc_query: a dict defining the document query
+    :param pymongo.collection.Collection doc_collection: the document mongo
+    collection object
+    :param str ner_collection_name: the ner mongo collection name (default:
+    "ner")
+    :return: the document + ner info as dict
+    """
+    return _get_documents_with_ner(
+        doc_query,
+        doc_collection,
+        ner_collection_name
+    ).next()
+
+
+# TODO - cant seem to mock klein_mongo.docs, so for now, the collection is a method parameter
+# TODO - to allow this to be tested
+def set_doclib_flag(collection, doc_id, started=None, ended=None, errored=None):
+    """
+    Creates or updates a doclib flag object for the consumer for a document.
+
+    @param pymongo.collection.Collection collection: the mongodb collection
+    @param str doc_id: the document id
+    @param datetime started: started timestamp
+    @param datetime ended: ended timestamp
+    @param datetime errored: ended timestamp
+    @return:
+    """
+    key = config.get("consumer.queue")
+
+    flag = {
+        "key": key,
+        "version": config.get("consumer.version"),
+        "started": started,
+        "ended": ended,
+        "errored": errored
+    }
+
+    # remove any existing flag(s) with the consumer's key
+    collection.update_one(
+        {"_id": ObjectId(doc_id)},
+        {"$pull": {"doclib": {"key": key}}}
+    )
+
+    # then create a new one with the provided details
+    collection.update_one(
+        {"_id": ObjectId(doc_id)},
+        {"$push": {"doclib": flag}},
+    )

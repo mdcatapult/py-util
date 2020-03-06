@@ -38,6 +38,12 @@ defining a `key` and `value` for each pair.
 `get_metadata_index_by_key() / get_metadata_index_by_value()` - returns the 
 index from a metadata list for the first matching key or value.
 
+Convenience functions for other doclib activities
+
+`get_document_with_ner` - takes a simple document query (e.g. `_id` or
+`source`) and returns it with an `ner` field containing matches from the `ner`
+collection.
+
 ## Tests
 To run tests, run the following command in the project root directory:
 
