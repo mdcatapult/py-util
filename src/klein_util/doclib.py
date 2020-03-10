@@ -4,6 +4,7 @@ from bson import ObjectId
 from klein_config import config
 
 
+# TODO - allow for duplicate keys??
 def parse_doclib_metadata(metadata):
     """
     Return a new dict from a list of dicts defining `key`s and `value`s.
@@ -36,10 +37,19 @@ def create_doclib_metadata(metadata):
     """
     Return a list of dicts defining each `key` and `value` from metadata dict.
 
+    Note - to create metadata items with duplicate keys, provide a list.
+
     :param dict metadata: the dict to convert into the doclib metadata format
     :return:
     """
-    return [{'key': k, 'value': v} for k, v in metadata.items()]
+    doclib_metadata = []
+    for key, value in metadata.items():
+        if isinstance(value, list):
+            for item in value:
+                doclib_metadata.append({'key': key, 'value': item})
+        else:
+            doclib_metadata.append({'key': key, 'value': value})
+    return doclib_metadata
 
 
 def _get_metadata_index_helper(metadata, key, value):
@@ -90,7 +100,7 @@ def get_metadata_index_by_value(metadata, value):
 
 # TODO - cant seem to mock klein_mongo.docs, so for now, the collection is a method parameter
 # TODO - to allow this to be tested
-def set_document_metadata(collection, doc_id, key, value, replace=True):
+def set_document_metadata(collection, doc_id, key, value, replace_all=False):
     """
     Creates or updates a metadata object for a document.
 
@@ -101,10 +111,11 @@ def set_document_metadata(collection, doc_id, key, value, replace=True):
     @param str doc_id: the document id
     @param str key: the metadata key
     @param str value: the metadata value
-    @param bool replace: flag to replace existing metadata objects
+    @param bool replace_all: flag to replace all existing metadata objects
+    matching the key
     @return:
     """
-    if replace:
+    if replace_all:
         # remove any metadata object matching the key
         collection.update_one(
             {"_id": ObjectId(doc_id)},
@@ -112,9 +123,10 @@ def set_document_metadata(collection, doc_id, key, value, replace=True):
         )
 
     # then create a new one with the provided details
+    # (exact duplicates will not be created, only duplicate keys if replace_all=False)
     collection.update_one(
         {"_id": ObjectId(doc_id)},
-        {"$push": {"metadata": {"key": key, "value": value}}},
+        {"$addToSet": {"metadata": {"key": key, "value": value}}},
     )
 
 

@@ -239,14 +239,14 @@ def test_set_document_metadata():
     assert get_metadata_index_by_key(metadata, "test3") == 3
 
     # replace single
-    set_document_metadata(test_doc_collection, test_doc_id, "test1", "test one modified")
+    set_document_metadata(test_doc_collection, test_doc_id, "test1", "test one modified", replace_all=True)
 
     metadata = _get_test_doc_metadata()
     assert len(metadata) == 4
     assert get_metadata_index_by_key(metadata, "test1") == 3
 
     # replace multiple
-    set_document_metadata(test_doc_collection, test_doc_id, "test2", "test two modified")
+    set_document_metadata(test_doc_collection, test_doc_id, "test2", "test two modified", replace_all=True)
 
     metadata = _get_test_doc_metadata()
     assert len(metadata) == 3
@@ -258,8 +258,14 @@ def test_set_document_metadata():
     assert meta_dict["test2"] == "test two modified"
     assert meta_dict["test3"] == "test three"
 
-    # add duplicate
-    set_document_metadata(test_doc_collection, test_doc_id, "test2", "test two modified dupe", replace=False)
+    # add duplicate key only
+    set_document_metadata(test_doc_collection, test_doc_id, "test2", "test two modified dupe")
+
+    metadata = _get_test_doc_metadata()
+    assert len(metadata) == 4
+
+    # add duplicate key and value
+    set_document_metadata(test_doc_collection, test_doc_id, "test2", "test two modified dupe")
 
     metadata = _get_test_doc_metadata()
     assert len(metadata) == 4
