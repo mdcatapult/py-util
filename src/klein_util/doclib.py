@@ -100,12 +100,14 @@ def get_metadata_index_by_value(metadata, value):
 
 # TODO - cant seem to mock klein_mongo.docs, so for now, the collection is a method parameter
 # TODO - to allow this to be tested
-def set_document_metadata(collection, doc_id, key, value, replace_all=False):
+def add_document_metadata(collection, doc_id, key, value, replace_all=False):
     """
     Creates or updates a metadata object for a document.
 
-    By default this will replace any existing metadata object(s) with the same
-    key. Use `replace=False` to add without removing existing ones.
+    By default this will not replace any existing metadata object(s) with the
+    same key. Use `replace_all=True` to removing all existing ones.
+    NOTE - exact duplicates (matching key and value) will not be created in
+    either case.
 
     @param pymongo.collection.Collection collection: the mongodb collection
     @param str doc_id: the document id

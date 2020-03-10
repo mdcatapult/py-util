@@ -8,7 +8,7 @@ from mongomock import MongoClient
 
 from src.klein_util.doclib import (
     parse_doclib_metadata, convert_document_metadata, create_doclib_metadata, get_metadata_index_by_key,
-    get_metadata_index_by_value, get_document_with_ner, set_doclib_flag, set_document_metadata
+    get_metadata_index_by_value, get_document_with_ner, set_doclib_flag, add_document_metadata
 )
 
 
@@ -224,7 +224,7 @@ def _get_test_doc_metadata():
 
 
 @patch('src.klein_util.doclib.config', new=test_config)
-def test_set_document_metadata():
+def test_add_document_metadata():
     metadata = _get_test_doc_metadata()
 
     # initial data
@@ -232,21 +232,21 @@ def test_set_document_metadata():
     assert get_metadata_index_by_key(metadata, "test1") == 0
 
     # add a new one:
-    set_document_metadata(test_doc_collection, test_doc_id, "test3", "test three")
+    add_document_metadata(test_doc_collection, test_doc_id, "test3", "test three")
 
     metadata = _get_test_doc_metadata()
     assert len(metadata) == 4
     assert get_metadata_index_by_key(metadata, "test3") == 3
 
     # replace single
-    set_document_metadata(test_doc_collection, test_doc_id, "test1", "test one modified", replace_all=True)
+    add_document_metadata(test_doc_collection, test_doc_id, "test1", "test one modified", replace_all=True)
 
     metadata = _get_test_doc_metadata()
     assert len(metadata) == 4
     assert get_metadata_index_by_key(metadata, "test1") == 3
 
     # replace multiple
-    set_document_metadata(test_doc_collection, test_doc_id, "test2", "test two modified", replace_all=True)
+    add_document_metadata(test_doc_collection, test_doc_id, "test2", "test two modified", replace_all=True)
 
     metadata = _get_test_doc_metadata()
     assert len(metadata) == 3
@@ -259,13 +259,13 @@ def test_set_document_metadata():
     assert meta_dict["test3"] == "test three"
 
     # add duplicate key only
-    set_document_metadata(test_doc_collection, test_doc_id, "test2", "test two modified dupe")
+    add_document_metadata(test_doc_collection, test_doc_id, "test2", "test two modified dupe")
 
     metadata = _get_test_doc_metadata()
     assert len(metadata) == 4
 
     # add duplicate key and value
-    set_document_metadata(test_doc_collection, test_doc_id, "test2", "test two modified dupe")
+    add_document_metadata(test_doc_collection, test_doc_id, "test2", "test two modified dupe")
 
     metadata = _get_test_doc_metadata()
     assert len(metadata) == 4
