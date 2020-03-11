@@ -216,7 +216,7 @@ def set_doclib_flag(collection, doc_id, started=None, ended=None, errored=None):
     @param datetime errored: ended timestamp
     @return:
     """
-    key = config.get("consumer.key")
+    key = config.get("consumer.name")
 
     flag = {
         "key": key,

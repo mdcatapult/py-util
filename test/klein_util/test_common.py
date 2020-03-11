@@ -7,7 +7,7 @@ test_config = EnvironmentAwareConfig(
         'version': 'config_version',
         'consumer': {
             'queue': "doclib_test_queue",
-            'key': "doclib_test_queue",
+            'name': "doclib_test_queue",
             'version': 'consumer_version',
         },
         'mongo': {
