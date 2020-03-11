@@ -9,7 +9,7 @@ from mongomock import MongoClient
 
 from src.klein_util.doclib import (
     parse_doclib_metadata, convert_document_metadata, create_doclib_metadata, get_metadata_index_by_key,
-    get_metadata_index_by_value, get_document_with_ner, set_doclib_flag, set_document_metadata,
+    get_metadata_index_by_value, get_document_with_ner, set_doclib_flag, add_document_metadata,
     get_doclib_derivative_path
 )
 
@@ -128,41 +128,35 @@ def test_get_metadata_index_by_value_1():
     assert result == 2
 
 
+@patch('src.klein_util.doclib.config', new=test_config)
 def test_derivatives_path_remote():
     doc = {"source": "/remote/https/bbc.co.uk/test.pdf"}
 
-    derivatives_prefix = "pdf_to_table"
-
     derivative_filename = "table1.csv"
 
-    result = get_doclib_derivative_path(doc=doc, derivatives_prefix=derivatives_prefix,
-                                        derivative_file_name=derivative_filename)
+    result = get_doclib_derivative_path(doc=doc, derivative_file_name=derivative_filename)
 
     assert result == "ingress/derivatives/remote/https/bbc.co.uk/pdf_to_table-test.pdf/table1.csv"
 
 
+@patch('src.klein_util.doclib.config', new=test_config)
 def test_derivatives_path_local_derivatives():
     doc = {"source": "local/derivatives/remote/https/bbc.co.uk/test.pdf"}
 
-    derivatives_prefix = "pdf_to_table"
-
     derivative_filename = "table1.csv"
 
-    result = get_doclib_derivative_path(doc=doc, derivatives_prefix=derivatives_prefix,
-                                        derivative_file_name=derivative_filename)
+    result = get_doclib_derivative_path(doc=doc, derivative_file_name=derivative_filename)
 
     assert result == "ingress/derivatives/remote/https/bbc.co.uk/pdf_to_table-test.pdf/table1.csv"
 
 
+@patch('src.klein_util.doclib.config', new=test_config)
 def test_derivatives_path_local():
     doc = {"source": "local/xenobiotica/test.pdf"}
 
-    derivatives_prefix = "pdf_to_table"
-
     derivative_filename = "table1.csv"
 
-    result = get_doclib_derivative_path(doc=doc, derivatives_prefix=derivatives_prefix,
-                                        derivative_file_name=derivative_filename)
+    result = get_doclib_derivative_path(doc=doc, derivative_file_name=derivative_filename)
 
     assert result == "ingress/derivatives/xenobiotica/pdf_to_table-test.pdf/table1.csv"
 
@@ -264,7 +258,7 @@ def _get_test_doc_metadata():
 
 
 @patch('src.klein_util.doclib.config', new=test_config)
-def test_set_document_metadata():
+def test_add_document_metadata():
     metadata = _get_test_doc_metadata()
 
     # initial data
@@ -272,21 +266,21 @@ def test_set_document_metadata():
     assert get_metadata_index_by_key(metadata, "test1") == 0
 
     # add a new one:
-    set_document_metadata(test_doc_collection, test_doc_id, "test3", "test three")
+    add_document_metadata(test_doc_collection, test_doc_id, "test3", "test three")
 
     metadata = _get_test_doc_metadata()
     assert len(metadata) == 4
     assert get_metadata_index_by_key(metadata, "test3") == 3
 
     # replace single
-    set_document_metadata(test_doc_collection, test_doc_id, "test1", "test one modified")
+    add_document_metadata(test_doc_collection, test_doc_id, "test1", "test one modified", replace_all=True)
 
     metadata = _get_test_doc_metadata()
     assert len(metadata) == 4
     assert get_metadata_index_by_key(metadata, "test1") == 3
 
     # replace multiple
-    set_document_metadata(test_doc_collection, test_doc_id, "test2", "test two modified")
+    add_document_metadata(test_doc_collection, test_doc_id, "test2", "test two modified", replace_all=True)
 
     metadata = _get_test_doc_metadata()
     assert len(metadata) == 3
@@ -298,8 +292,14 @@ def test_set_document_metadata():
     assert meta_dict["test2"] == "test two modified"
     assert meta_dict["test3"] == "test three"
 
-    # add duplicate
-    set_document_metadata(test_doc_collection, test_doc_id, "test2", "test two modified dupe", replace=False)
+    # add duplicate key only
+    add_document_metadata(test_doc_collection, test_doc_id, "test2", "test two modified dupe")
+
+    metadata = _get_test_doc_metadata()
+    assert len(metadata) == 4
+
+    # add duplicate key and value
+    add_document_metadata(test_doc_collection, test_doc_id, "test2", "test two modified dupe")
 
     metadata = _get_test_doc_metadata()
     assert len(metadata) == 4

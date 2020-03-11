@@ -5,6 +5,7 @@ from bson import ObjectId
 from klein_config import config
 
 
+# TODO - allow for duplicate keys??
 def parse_doclib_metadata(metadata):
     """
     Return a new dict from a list of dicts defining `key`s and `value`s.
@@ -37,10 +38,19 @@ def create_doclib_metadata(metadata):
     """
     Return a list of dicts defining each `key` and `value` from metadata dict.
 
+    Note - to create metadata items with duplicate keys, provide a list.
+
     :param dict metadata: the dict to convert into the doclib metadata format
     :return:
     """
-    return [{'key': k, 'value': v} for k, v in metadata.items()]
+    doclib_metadata = []
+    for key, value in metadata.items():
+        if isinstance(value, list):
+            for item in value:
+                doclib_metadata.append({'key': key, 'value': item})
+        else:
+            doclib_metadata.append({'key': key, 'value': value})
+    return doclib_metadata
 
 
 def _get_metadata_index_helper(metadata, key, value):
@@ -89,46 +99,45 @@ def get_metadata_index_by_value(metadata, value):
     return _get_metadata_index_helper(metadata, 'value', value)
 
 
-def get_doclib_derivative_path(doc, derivative_file_name, derivatives_prefix):
+def get_doclib_derivative_path(doc, derivative_file_name):
 
     p = pathlib.Path(doc["source"])
-
     parts = list(p.parts)
-
-    # todo get ingress from config config.get("doclib.local_temp") needs config aware unit test
-    parts[0] = "ingress"
+    parts[0] = config.get("doclib.local_temp")
 
     if parts[1] != "derivatives":
         parts.insert(1, "derivatives")
 
-    # todo get derivatives_prefix from config config.get("consumer.derivatives.prefix") needs config aware unit test
-    parts[-1] = "{prefix}-{filename}".format(prefix=derivatives_prefix, filename=parts[-1])
+    prefix = config.get("doclib.derivatives_prefix")
+    parent_filename=parts[-1]
+    parts[-1] = f"{prefix}-{parent_filename}"
 
     parts.append(derivative_file_name)
-
     parts = tuple(parts)
 
-    derivative = str(pathlib.Path(*parts))
+    return str(pathlib.Path(*parts))
 
-    return derivative
 
 # TODO - cant seem to mock klein_mongo.docs, so for now, the collection is a method parameter
 # TODO - to allow this to be tested
-def set_document_metadata(collection, doc_id, key, value, replace=True):
+def add_document_metadata(collection, doc_id, key, value, replace_all=False):
     """
     Creates or updates a metadata object for a document.
 
-    By default this will replace any existing metadata object(s) with the same
-    key. Use `replace=False` to add without removing existing ones.
+    By default this will not replace any existing metadata object(s) with the
+    same key. Use `replace_all=True` to removing all existing ones.
+    NOTE - exact duplicates (matching key and value) will not be created in
+    either case.
 
     @param pymongo.collection.Collection collection: the mongodb collection
     @param str doc_id: the document id
     @param str key: the metadata key
     @param str value: the metadata value
-    @param bool replace: flag to replace existing metadata objects
+    @param bool replace_all: flag to replace all existing metadata objects
+    matching the key
     @return:
     """
-    if replace:
+    if replace_all:
         # remove any metadata object matching the key
         collection.update_one(
             {"_id": ObjectId(doc_id)},
@@ -136,9 +145,10 @@ def set_document_metadata(collection, doc_id, key, value, replace=True):
         )
 
     # then create a new one with the provided details
+    # (exact duplicates will not be created, only duplicate keys if replace_all=False)
     collection.update_one(
         {"_id": ObjectId(doc_id)},
-        {"$push": {"metadata": {"key": key, "value": value}}},
+        {"$addToSet": {"metadata": {"key": key, "value": value}}},
     )
 
 
@@ -206,7 +216,7 @@ def set_doclib_flag(collection, doc_id, started=None, ended=None, errored=None):
     @param datetime errored: ended timestamp
     @return:
     """
-    key = config.get("consumer.queue")
+    key = config.get("consumer.key")
 
     flag = {
         "key": key,
