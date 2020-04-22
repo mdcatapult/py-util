@@ -237,3 +237,20 @@ def set_doclib_flag(collection, doc_id, started=None, ended=None, errored=None):
         {"_id": ObjectId(doc_id)},
         {"$push": {"doclib": flag}},
     )
+
+
+def get_doclib_flag(doc):
+    """
+    Returns a doclib flag object for a given document or None.
+
+    Uses the consumer name of the configured consumer as the flag key.
+    
+    @param dict doc: the document
+    """
+    key = config.get("consumer.name")
+
+    for flag in doc["doclib"]:
+        if flag["key"] == key:
+            return flag
+
+    return None

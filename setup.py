@@ -8,7 +8,7 @@ def readme():
 
 
 setup(name='klein_util',
-      version='0.1.14',
+      version='0.1.15',
       description='Utility Functions & Classes',
       url='http://gitlab.mdcatapult.io/informatics/klein/klein_util',
       author='Matt Cockayne',
