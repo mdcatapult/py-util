@@ -10,7 +10,7 @@ from mongomock import MongoClient
 from src.klein_util.doclib import (
     parse_doclib_metadata, convert_document_metadata, create_doclib_metadata, get_metadata_index_by_key,
     get_metadata_index_by_value, get_document_with_ner, set_doclib_flag, add_document_metadata,
-    get_doclib_derivative_path
+    get_doclib_derivative_path, get_doclib_flag
 )
 
 
@@ -160,15 +160,23 @@ def test_derivatives_path_local():
 
     assert result == "ingress/derivatives/xenobiotica/pdf_to_table-test.pdf/table1.csv"
 
+
 # create a new mocked collection
 test_db = MongoClient()['doclib']
 test_doc_collection = test_db['documents']
 test_doc_id = ObjectId("123456781234567812345678")
-test_doc = test_doc_collection.insert_one({
+test_doc = {
     "_id": test_doc_id,
     "doclib": [
         {
             "key": "doclib_other_key",
+            "version" : {
+                    "number" : "2.0.1-SNAPSHOT",
+                    "major" : 2,
+                    "minor" : 0,
+                    "patch" : 1,
+                    "hash" : "192544e4"
+            },
             "started": datetime.now(),
             "ended": datetime.now(),
             "errored": None
@@ -179,7 +187,8 @@ test_doc = test_doc_collection.insert_one({
         {"key": "test2", "value": "test two"},
         {"key": "test2", "value": "test two"},
     ]
-})
+}
+test_doc_collection.insert_one(test_doc)
 
 test_ner_data = {
     "value": "aspirin",
@@ -250,6 +259,53 @@ def test_set_doclib_flag():
     assert new_updated_flag['errored'] is None
     # TODO - see above
     # assert new_updated_flag['ended'] == new_ended
+
+
+get_flag_test_doc = {
+    "doclib": [
+        {
+            "key": "doclib_other_key",
+            "version" : {
+                    "number" : "1.0.1-SNAPSHOT",
+                    "major" : 1,
+                    "minor" : 0,
+                    "patch" : 1,
+                    "hash" : "578543ed2"
+            },
+            "started": datetime.now(),
+            "ended": datetime.now(),
+            "errored": None
+        },
+        {
+            "key": "doclib_test_queue",
+            "version" : {
+                    "number" : "2.0.1-SNAPSHOT",
+                    "major" : 2,
+                    "minor" : 0,
+                    "patch" : 1,
+                    "hash" : "192544e4"
+            },
+            "started": datetime.now(),
+            "ended": None,
+            "errored": datetime.now()
+        }
+    ],
+}
+
+
+@patch('src.klein_util.doclib.config', new=test_config)
+def test_get_doclib_flag():
+    flag = get_doclib_flag(get_flag_test_doc)
+
+    assert flag["key"] == "doclib_test_queue"
+    assert flag["ended"] is None
+
+
+@patch('src.klein_util.doclib.config', new=test_config)
+def test_get_doclib_flag_no_flag():
+    flag = get_doclib_flag(test_doc)
+
+    assert flag is None
 
 
 def _get_test_doc_metadata():
