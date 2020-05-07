@@ -308,6 +308,13 @@ def test_get_doclib_flag_no_flag():
     assert flag is None
 
 
+@patch('src.klein_util.doclib.config', new=test_config)
+def test_get_doclib_flag_no_doclib_property():
+    flag = get_doclib_flag({})
+
+    assert flag is None
+
+
 def _get_test_doc_metadata():
     test_document = test_doc_collection.find_one({"_id": test_doc_id})
     return test_document['metadata']
