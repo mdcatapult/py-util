@@ -249,7 +249,7 @@ def get_doclib_flag(doc):
     """
     key = config.get("consumer.name")
 
-    for flag in doc["doclib"]:
+    for flag in doc.get("doclib", []):
         if flag["key"] == key:
             return flag
 
