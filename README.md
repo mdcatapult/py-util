@@ -1,3 +1,7 @@
+[![pipeline status](https://gitlab.mdcatapult.io/informatics/klein/py-util/badges/update-to-uuid/pipeline.svg)](https://gitlab.mdcatapult.io/informatics/klein/py-util/-/commits/update-to-uuid)
+
+[![coverage report](https://gitlab.mdcatapult.io/informatics/klein/py-util/badges/update-to-uuid/coverage.svg)](https://gitlab.mdcatapult.io/informatics/klein/py-util/-/commits/update-to-uuid)
+
 # Klein Util
 
 Module to contain some basic utility components
