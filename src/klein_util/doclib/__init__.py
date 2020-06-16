@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from .derivatives import (
     get_doclib_derivative_path,
+    get_doclib_derivative_paths,
 )
 
 from .flags import (

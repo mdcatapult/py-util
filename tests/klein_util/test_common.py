@@ -19,8 +19,11 @@ test_config = EnvironmentAwareConfig(
             'fragments_collection': 'documents_fragments',
         },
         'doclib': {
+            'root': '/doclib_dev/',
+            'local_target': 'local',
             'local_temp': 'ingress',
-            'derivatives_prefix': 'pdf_to_table'
+            'remote_target': 'remote',
+            'derivatives_prefix': 'raw_text'
         }
     }
 )
