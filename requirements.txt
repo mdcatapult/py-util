@@ -1,4 +1,5 @@
-klein_config<=1.01
+klein_config
+klein_mongo
 boto3
 bson
 mongomock
