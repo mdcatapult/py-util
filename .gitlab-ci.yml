@@ -20,12 +20,17 @@ before_script:
 lint:
   stage: test
   script:
+    - pip install pylint
     - pylint --rcfile=.pylintrc src
 
 test:
   stage: test
   script:
-    - python -m pytest
+    - pip install pytest
+    - pip install mongomock
+    - pip install coverage
+    - coverage run --source=src -m pytest
+    - coverage report
 
 publish-stable:
   stage: publish

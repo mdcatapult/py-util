@@ -13,11 +13,17 @@ test_config = EnvironmentAwareConfig(
         'mongo': {
             'host': 'test_host',
             'username': 'test_user',
-            'password': 'test_password'
+            'password': 'test_password',
+            'ner_collection': 'documents_ner',
+            'ner_occurrences_collection': 'documents_ner_occurrences',
+            'fragments_collection': 'documents_fragments',
         },
         'doclib': {
+            'root': '/doclib_dev/',
+            'local_target': 'local',
             'local_temp': 'ingress',
-            'derivatives_prefix': 'pdf_to_table'
+            'remote_target': 'remote',
+            'derivatives_prefix': 'raw_text'
         }
     }
 )
