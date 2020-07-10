@@ -1,49 +1,82 @@
-image: python:latest
 variables:
   PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache"
 
 cache:
   paths:
     - .cache/pip
-    - venv/
 
 stages: 
   - test
   - publish
+  - release
 
-before_script:
-  - >
-    pip install -r requirements.txt --trusted-host=nexus.mdcatapult.io 
-    --index=https://$NEXUS_USERNAME:$NEXUS_PASSWORD@nexus.mdcatapult.io/repository/pypi-all/pypi 
-    --index-url=https://$NEXUS_USERNAME:$NEXUS_PASSWORD@nexus.mdcatapult.io/repository/pypi-all/simple
+default:
+  image: registry.mdcatapult.io/informatics/docker-images/ci:python-v1.0.0
+  before_script:
+    - >
+      pip install -r requirements.txt --trusted-host=nexus.mdcatapult.io
+      --index=https://$NEXUS_USERNAME:$NEXUS_PASSWORD@nexus.mdcatapult.io/repository/pypi-all/pypi
+      --index-url=https://$NEXUS_USERNAME:$NEXUS_PASSWORD@nexus.mdcatapult.io/repository/pypi-all/simple
 
 lint:
   stage: test
+  tags:
+    - wopr
   script:
-    - pip install pylint
     - pylint --rcfile=.pylintrc src
+  except:
+    variables:
+      - $CI_COMMIT_MESSAGE =~ /^Setting version to.*/
 
 test:
   stage: test
+  tags:
+    - wopr
   script:
-    - pip install pytest
-    - pip install mongomock
-    - pip install coverage
     - coverage run --source=src -m pytest
     - coverage report
+  coverage: /^TOTAL.+?(\d+\%)$/
+  except:
+    variables:
+      - $CI_COMMIT_MESSAGE =~ /^Setting version to.*/
 
 publish-stable:
   stage: publish
+  tags:
+    - wopr
+  before_script: [""]
   script:
     - python setup.py sdist bdist_wheel
     - twine upload -u $NEXUS_USERNAME -p $NEXUS_PASSWORD --repository-url https://nexus.mdcatapult.io/repository/pypi-stable/ dist/*
   only:
-    - master
+    refs:
+      - tags
+    variables:
+      - $CI_COMMIT_MESSAGE =~ /^Setting version to.*/
 
 publish-unstable:
   stage: publish
+  tags:
+    - wopr
+  before_script: [""]
   script:
-    - python setup.py egg_info -b.build-$CI_JOB_ID sdist bdist_wheel
+    - python setup.py sdist bdist_wheel
     - twine upload -u $NEXUS_USERNAME -p $NEXUS_PASSWORD --repository-url https://nexus.mdcatapult.io/repository/pypi-unstable/ dist/*
   except:
+    refs:
+      - master
+    variables:
+      - $CI_COMMIT_MESSAGE =~ /^Setting version to.*/
+
+release:
+  stage: release
+  tags:
+    - wopr
+  before_script: [""]
+  script:
+    - /scripts/release.sh src
+  only:
     - master
+  except:
+    variables:
+      - $CI_COMMIT_MESSAGE =~ /^Setting version to.*/
