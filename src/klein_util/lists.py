@@ -37,7 +37,7 @@ def add_string(input_list, value):
     :return list
     """
     if not isinstance(input_list, list):
-        raise TypeError("Target list is is not a list: type detected = %s" % type(input_list))
+        raise TypeError(f"Target list is is not a list: type detected = {type(input_list)}")
 
     if isinstance(value, int):
         value = str(value)
@@ -49,6 +49,6 @@ def add_string(input_list, value):
         value = list(value.keys())
 
     if not isinstance(value, list):
-            raise TypeError("Item to be added to the target list is of unhandled type %s" % type(value))
+            raise TypeError(f"Item to be added to the target list is of unhandled type {type(value)}")
 
     return uniqify(input_list + value)
