@@ -17,7 +17,6 @@ default:
       pip install -r requirements.txt  
       --index=https://$NEXUS_USERNAME:$NEXUS_PASSWORD@nexus.wopr.inf.mdc/repository/pypi-all/pypi
       --index-url=https://$NEXUS_USERNAME:$NEXUS_PASSWORD@nexus.wopr.inf.mdc/repository/pypi-all/simple
-    - pip show twine
 
 lint:
   stage: test
@@ -59,7 +58,8 @@ publish-unstable:
   stage: publish
   tags:
     - wopr
-  before_script: [""]
+  before_script:
+    - pip install twine
   script:
     - python setup.py sdist bdist_wheel
     - twine upload -u $NEXUS_USERNAME -p $NEXUS_PASSWORD --repository-url https://nexus.wopr.inf.mdc/repository/pypi-unstable/ dist/*
