@@ -60,6 +60,7 @@ publish-unstable:
     - wopr
   before_script: [""]
   script:
+    - pip show twine
     - python setup.py sdist bdist_wheel
     - twine upload -u $NEXUS_USERNAME -p $NEXUS_PASSWORD --repository-url https://nexus.wopr.inf.mdc/repository/pypi-unstable/ dist/*
   except:
