@@ -20,3 +20,6 @@ To run tests, run the following command in the project root directory:
 ```
 python -m pytest
 ```
+
+### License
+This project is licensed under the terms of the Apache 2 license, which can be found in the repository as `LICENSE.txt`
