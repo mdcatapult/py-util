@@ -44,4 +44,5 @@ setup(name='klein_util',
           'klein_config',
           'boto3>=1.23.10,<2'
       ],
-      zip_safe=True)
+      zip_safe=True,
+      include_package_data=True)
