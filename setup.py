@@ -42,6 +42,6 @@ setup(name='klein_util',
       package_dir={'': 'src'},
       install_requires=[
           'klein_config',
-          'boto3>=1.26,<2'
+          'boto3>=1.23.10,<2'
       ],
       zip_safe=True)
