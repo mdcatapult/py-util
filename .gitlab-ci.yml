@@ -44,7 +44,8 @@ publish-stable:
   stage: publish
   tags:
     - wopr
-  before_script: [""]
+  before_script:
+    - pip install twine
   script:
     - python setup.py sdist bdist_wheel
     - twine upload -u $NEXUS_USERNAME -p $NEXUS_PASSWORD --repository-url https://nexus.wopr.inf.mdc/repository/pypi-stable/ dist/*
