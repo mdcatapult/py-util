@@ -42,6 +42,7 @@ setup(name='klein_util',
       package_dir={'': 'src'},
       install_requires=[
           'klein_config',
-          'boto3'
+          'boto3',
+          'botocore'
       ],
       zip_safe=True)
